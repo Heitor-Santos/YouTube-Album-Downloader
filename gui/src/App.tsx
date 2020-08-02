@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import {BrowserRouter, Switch, Route} from 'react-router-dom'
+import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
 import './App.css';
 import axios from 'axios'
 import AlbumsList from './AlbumsList'
+import AlbumInfo from './AlbumInfo'
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 import { Container, TextField, List, ListItem, Button, Icon } from '@material-ui/core';
-import {AccessAlarm} from '@material-ui/icons'
+import { AccessAlarm } from '@material-ui/icons'
 import SearchIcon from '@material-ui/icons/Search';
 function App() {
   const [videoURL, setVideoURL] = useState<string>('')
@@ -25,31 +26,29 @@ function App() {
   }
   document.addEventListener('keydown', (e) => {
     if (e.code === "Enter")
-    setNumberSearches(numberSearches + 1) 
+      setNumberSearches(numberSearches + 1)
   });
   return (
-    <Container maxWidth='md' style={{ }}>
-      <List>
-        <ListItem>
-          <TextField id="outlined-basic" size='small' fullWidth label="Insira o URL" variant="outlined" onChange={(e) => setVideoURL(e.target.value)} />
-          <Button size='large'variant="contained" onClick={() => download()}>Download</Button>
-        </ListItem>
-        <ListItem>
-          <TextField size='small' fullWidth label="Insira o nome do álbum" variant="outlined" onChange={(e) => setAlbumTitle(e.target.value)}/>
-          <Button size='large'  variant="contained" onClick={(e) => { setNumberSearches(numberSearches + 1) }}><SearchIcon/></Button>
-        </ListItem>
-      </List>
-      <BrowserRouter>
+    <BrowserRouter>
+      <Container maxWidth='md' style={{}}>
+        <List>
+          <ListItem>
+            <TextField id="outlined-basic" size='small' fullWidth label="Insira o URL" variant="outlined" onChange={(e) => setVideoURL(e.target.value)} />
+            <Button size='large' variant="contained" onClick={() => download()}>Download</Button>
+          </ListItem>
+          <ListItem>
+            <TextField size='small' fullWidth label="Insira o nome do álbum" variant="outlined" onChange={(e) => setAlbumTitle(e.target.value)} />
+            <Button size='large' variant="contained" onClick={(e) => { setNumberSearches(numberSearches + 1) }}><SearchIcon /></Button>
+          </ListItem>
+        </List>
         <Switch>
-          <Route path='/'></Route>
-          <Route path='/albumsresults' component={AlbumsList}></Route>
+          <Route path='/' exact={true} render={() => (numberSearches==1 ? <Redirect to='/albumsresults' /> : null)}></Route>
+          <Route path='/albumsresults' exact={true} render={(props) => <AlbumsList {...props} albumName={albumTitle} numberSearches={numberSearches} />}></Route>
+          <Route path='/oi'><h1>OOOOIII</h1></Route>
+          <Route path='/album=:albumName&artist=:artist' component={AlbumInfo}/>
         </Switch>
-      </BrowserRouter>
-      {numberSearches ?
-        <AlbumsList albumName={albumTitle} numberSearches={numberSearches} />
-        : null
-      }
-    </Container>
+      </Container>
+    </BrowserRouter>
   );
 }
 

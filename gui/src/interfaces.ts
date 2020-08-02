@@ -3,7 +3,7 @@ export interface Album {
     title: string;
     artist: string;
 }
-export interface ListProps{
+export interface ListProps {
     albumName: string;
     numberSearches: number;
 }
@@ -11,6 +11,26 @@ export interface Column {
     id: 'cover' | 'title' | 'artist';
     label: string;
     minWidth?: number;
-    align?: 'right'|'center';
+    align?: 'right' | 'center';
     format?: (value: number) => string;
+}
+export interface AlbumInfoColumn {
+    id: 'cover' | 'track' | 'length';
+    label: string;
+    minWidth?: number;
+    align?: 'right' | 'center';
+    format?: (value: number) => string;
+}
+export interface Song {
+    cover: string;
+    track: string;
+    length: string;
+}
+export interface InfoProps {
+    match: {
+        params: {
+            albumName: string;
+            artist: string;
+        }
+    }
 }

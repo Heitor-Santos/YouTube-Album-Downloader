@@ -10,32 +10,31 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
 import { TablePagination } from '@material-ui/core';
-import { Album, ListProps, Column } from './interfaces'
-import { Link } from 'react-router-dom';
+import { Album, ListProps, Column, AlbumInfoColumn, Song, InfoProps  } from './interfaces'
+import {getAlbumInfo} from './requests'
 
-function AlbumsList(props: ListProps) {
-    useEffect(() => { loadAlbunsData() }, [props.numberSearches])
-    const [rows, setRows] = useState<Array<Album>>([])
-    const lastFmApi = axios.create({
-        baseURL: 'http://ws.audioscrobbler.com/2.0'
-    })
-    async function loadAlbunsData() {
-        console.log(props.albumName)
-        const resp = await lastFmApi.get(`?method=album.search&album=${props.albumName}&api_key=99982c4cc358059cd927e1c74d8f7e25&format=json`)
-        let rowsY = resp.data['results']['albummatches']['album'].map((album: any) => {
-            return createAlbum(album['image'][1]['#text'], album['name'], album['artist'])
+function AlbumInfo(props: InfoProps){
+    const [rows, setRows] = useState<Array<Song>>([])
+    useEffect(() => { loadSongsData() }, [])
+    function sec2time(timeInSeconds:number) {
+       const minutes = ("0" + Math.floor(timeInSeconds/60)).slice(-2); 
+       let seconds = ("0" + (timeInSeconds%60)).slice(-2);
+       return `${minutes}:${seconds}`
+    }
+    async function loadSongsData(){
+        const resp = await getAlbumInfo(props.match.params.albumName, props.match.params.artist)
+        const rowsY = resp['album']['tracks']['track'].map((song:any)=>{
+            return createSong(resp['album']['image'][1]['#text'], song['name'],sec2time(song['duration']))
         })
-        console.log(resp.data)
-        console.log(rowsY)
         setRows(rowsY)
     }
-    const columns: Column[] = [
+    const columns: AlbumInfoColumn[] = [
         { id: 'cover', label: 'Capa', minWidth: 170 },
-        { id: 'title', label: 'Título', minWidth: 100, align: 'center' },
-        { id: 'artist', label: 'Artista', minWidth: 170, align: 'right' }
+        { id: 'track', label: 'Faixa', minWidth: 100, align: 'center' },
+        { id: 'length', label: 'Duração', minWidth: 170, align: 'right' }
     ];
-    function createAlbum(cover: string, title: string, artist: string): Album {
-        return { cover, title, artist};
+    function createSong(cover: string, track: string, length: string): Song{
+        return { cover, track, length};
     }
     const useStyles = makeStyles({
         root: {
@@ -45,20 +44,20 @@ function AlbumsList(props: ListProps) {
             maxHeight: 440,
         },
     });
-
+    
     const classes = useStyles();
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
+    
     const handleChangePage = (event: unknown, newPage: number) => {
         setPage(newPage);
     };
-
+    
     const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
         setRowsPerPage(+event.target.value);
         setPage(0);
     };
-    return (
+    return(
         <Paper className={classes.root}>
             <TableContainer className={classes.container}>
                 <Table stickyHeader aria-label="sticky table">
@@ -77,11 +76,9 @@ function AlbumsList(props: ListProps) {
                     </TableHead>
                     <TableBody>
                         {console.log(rows)}
-                        {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: Album) => {
+                        {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: Song) => {
                             console.log(row)
-                            const link = `/album=${row['title']}&artist=${row['artist']}`
                             return (
-                                <Link to={link}>
                                 <TableRow hover role="checkbox" tabIndex={-1} key={row.cover}>
                                     {columns.map((column) => {
                                         const value = row[column.id];
@@ -92,7 +89,6 @@ function AlbumsList(props: ListProps) {
                                         );
                                     })}
                                 </TableRow>
-                                </Link>
                             );
                         })}
                     </TableBody>
@@ -110,4 +106,4 @@ function AlbumsList(props: ListProps) {
         </Paper>
     )
 }
-export default AlbumsList
+export default AlbumInfo

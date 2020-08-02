@@ -15,14 +15,13 @@ export interface Column {
     format?: (value: number) => string;
 }
 export interface AlbumInfoColumn {
-    id: 'cover' | 'track' | 'length';
+    id: 'track' | 'length';
     label: string;
     minWidth?: number;
     align?: 'right' | 'center';
     format?: (value: number) => string;
 }
 export interface Song {
-    cover: string;
     track: string;
     length: string;
 }

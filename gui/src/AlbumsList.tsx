@@ -9,7 +9,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
-import { TablePagination } from '@material-ui/core';
+import { TablePagination, Container } from '@material-ui/core';
 import { Album, ListProps, Column } from './interfaces'
 import { Link } from 'react-router-dom';
 
@@ -28,6 +28,7 @@ function AlbumsList(props: ListProps) {
         console.log(resp.data)
         console.log(rowsY)
         setRows(rowsY)
+        props.setSearching(false)
     }
     const columns: Column[] = [
         { id: 'cover', label: 'Capa', minWidth: 170 },
@@ -59,7 +60,9 @@ function AlbumsList(props: ListProps) {
         setPage(0);
     };
     return (
-        <Paper className={classes.root}>
+        <Container>
+            {rows.length?
+            <Paper className={classes.root}>
             <TableContainer className={classes.container}>
                 <Table stickyHeader aria-label="sticky table">
                     <TableHead>
@@ -81,18 +84,16 @@ function AlbumsList(props: ListProps) {
                             console.log(row)
                             const link = `/album=${row['title']}&artist=${row['artist']}`
                             return (
-                                <Link to={link}>
-                                <TableRow hover role="checkbox" tabIndex={-1} key={row.cover}>
+                                <TableRow hover component={Link} to={link} style={{textDecoration:'none'}} role="checkbox" tabIndex={-1} key={row.cover}>
                                     {columns.map((column) => {
                                         const value = row[column.id];
-                                        return (
+                                        return (                                            
                                             <TableCell key={column.id} align={column.align}>
-                                                {column.id === 'cover' && typeof value === 'string' ? <img src={value} /> : value}
+                                                {column.id === 'cover' && typeof value === 'string' ? <img src={value} /> : value} 
                                             </TableCell>
                                         );
                                     })}
                                 </TableRow>
-                                </Link>
                             );
                         })}
                     </TableBody>
@@ -107,7 +108,9 @@ function AlbumsList(props: ListProps) {
                 onChangePage={handleChangePage}
                 onChangeRowsPerPage={handleChangeRowsPerPage}
             />
-        </Paper>
+        </Paper>:<div></div>}
+        </Container>
+        
     )
 }
 export default AlbumsList

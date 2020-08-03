@@ -6,6 +6,7 @@ export interface Album {
 export interface ListProps {
     albumName: string;
     numberSearches: number;
+    setSearching: Function;
 }
 export interface Column {
     id: 'cover' | 'title' | 'artist';
@@ -32,4 +33,5 @@ export interface InfoProps {
             artist: string;
         }
     }
+    setSearching: Function;
 }

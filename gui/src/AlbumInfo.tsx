@@ -10,7 +10,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import { makeStyles } from '@material-ui/core/styles';
-import { TablePagination, Card, CardMedia, CardActionArea, CardContent, Typography, Grid, Button } from '@material-ui/core';
+import { TablePagination, Card, CardMedia, CardActionArea, CardContent, Typography, Grid, Button, Container } from '@material-ui/core';
 import { Album, ListProps, Column, AlbumInfoColumn, Song, InfoProps } from './interfaces'
 import { getAlbumInfo } from './requests'
 
@@ -24,12 +24,14 @@ function AlbumInfo(props: InfoProps) {
         return `${minutes}:${seconds}`
     }
     async function loadSongsData() {
+        props.setSearching(true)
         const resp = await getAlbumInfo(props.match.params.albumName, props.match.params.artist)
         const rowsY = resp['album']['tracks']['track'].map((song: any) => {
             return createSong(song['name'], sec2time(song['duration']))
         })
         setCover(resp['album']['image'][3]['#text'])
         setRows(rowsY)
+        props.setSearching(false)
     }
     const columns: AlbumInfoColumn[] = [
         { id: 'track', label: 'Faixa', minWidth: 100, align: 'center' },
@@ -60,69 +62,72 @@ function AlbumInfo(props: InfoProps) {
         setPage(0);
     };
     return (
-        <Paper className={classes.root}>
-            <Grid container spacing={4}>
-                <Grid item>
-                    <img src={cover} />
-                </Grid>
-                <Grid item>
-                    <Typography variant="h4">{props.match.params.albumName}</Typography>
-                    <Typography variant="h5">{props.match.params.artist}</Typography>
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        startIcon={<CloudDownloadIcon />}
-                    >
-                        Download
+        <Container>
+            {rows.length ?
+                <Paper className={classes.root}>
+                    <Grid container spacing={4}>
+                        <Grid item>
+                            <img src={cover} />
+                        </Grid>
+                        <Grid item>
+                            <Typography variant="h4">{props.match.params.albumName}</Typography>
+                            <Typography variant="h5">{props.match.params.artist}</Typography>
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                startIcon={<CloudDownloadIcon />}
+                            >
+                                Download
                     </Button>
-                </Grid>
-            </Grid>
-            <TableContainer className={classes.container}>
-                <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                        <TableRow>
-                            {columns.map((column) => (
-                                <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                    style={{ minWidth: column.minWidth }}
-                                >
-                                    {column.label}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {console.log(cover)}
-                        {console.log(rows)}
-                        {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: Song) => {
-                            console.log(row)
-                            return (
-                                <TableRow hover role="checkbox" tabIndex={-1} key={row.track}>
-                                    {columns.map((column) => {
-                                        const value = row[column.id];
-                                        return (
-                                            <TableCell key={column.id} align={column.align}>
-                                                {value}
-                                            </TableCell>
-                                        );
-                                    })}
+                        </Grid>
+                    </Grid>
+                    <TableContainer className={classes.container}>
+                        <Table stickyHeader aria-label="sticky table">
+                            <TableHead>
+                                <TableRow>
+                                    {columns.map((column) => (
+                                        <TableCell
+                                            key={column.id}
+                                            align={column.align}
+                                            style={{ minWidth: column.minWidth }}
+                                        >
+                                            {column.label}
+                                        </TableCell>
+                                    ))}
                                 </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[10, 25, 100]}
-                component="div"
-                count={rows.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-            />
-        </Paper>
+                            </TableHead>
+                            <TableBody>
+                                {console.log(cover)}
+                                {console.log(rows)}
+                                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: Song) => {
+                                    console.log(row)
+                                    return (
+                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.track}>
+                                            {columns.map((column) => {
+                                                const value = row[column.id];
+                                                return (
+                                                    <TableCell key={column.id} align={column.align}>
+                                                        {value}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[10, 25, 100]}
+                        component="div"
+                        count={rows.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onChangePage={handleChangePage}
+                        onChangeRowsPerPage={handleChangeRowsPerPage}
+                    />
+                </Paper> : <div></div>}
+        </Container>
     )
 }
 export default AlbumInfo

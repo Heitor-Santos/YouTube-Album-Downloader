@@ -10,9 +10,10 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import { makeStyles } from '@material-ui/core/styles';
-import { TablePagination, Card, CardMedia, CardActionArea, CardContent, Typography, Grid, Button, Container, Box, ListItem, List } from '@material-ui/core';
+import { TablePagination, Card, CardMedia, CardActionArea, CardContent, Typography, Grid, Button, Container, Box, ListItem, List, Divider } from '@material-ui/core';
 import { Album, ListProps, Column, AlbumInfoColumn, Song, InfoProps } from './interfaces'
 import { getAlbumInfo } from './requests'
+import useStyles from './styles'
 
 function AlbumInfo(props: InfoProps) {
     const [rows, setRows] = useState<Array<Song>>([])
@@ -50,15 +51,6 @@ function AlbumInfo(props: InfoProps) {
     function createSong(track: string, length: string): Song {
         return { track, length };
     }
-    const useStyles = makeStyles({
-        root: {
-            width: '100%',
-        },
-        container: {
-            maxHeight: 440,
-        },
-    });
-
     const classes = useStyles();
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -72,51 +64,61 @@ function AlbumInfo(props: InfoProps) {
         setPage(0);
     };
     return (
-        <Box>
+        <Box className={classes.pages}>
             {rows.length ?
-                <Paper className={classes.root} style={{ backgroundColor: 'green' }}>
+                <Paper className={classes.root} style={{ backgroundColor: '#e7dfdd' }}>
                     <Grid container>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12} sm={5} style={{borderRight:'solid thin #d3d3d3'}}>
                             <Container>
-                                <img src={cover} />
+                                <img src={cover} style={{border: 'solid thin gray'}}/>
                                 <Typography variant="h4">{props.match.params.albumName}</Typography>
                                 <Typography variant="h5">{props.match.params.artist}</Typography>
-                                <Button variant="contained" color="secondary" startIcon={<CloudDownloadIcon />}>Download</Button>
+                                <Button variant="contained" style={{backgroundColor:"#4717f6", marginBottom:'5px'}} startIcon={<CloudDownloadIcon />}>Download</Button>
                             </Container>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                        <TableContainer className={classes.container}>
-                        <Table stickyHeader aria-label="sticky table">
-                            <TableHead>
-                                <TableRow>
-                                    {columns.map((column) => (
-                                        <TableCell key={column.id} align={column.align} style={{ minWidth: column.minWidth }}>
-                                            {column.label}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {console.log(cover)}
-                                {console.log(rows)}
-                                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: Song) => {
-                                    console.log(row)
-                                    return (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.track}>
-                                            {columns.map((column) => {
-                                                const value = row[column.id];
-                                                return (
-                                                    <TableCell key={column.id} align={column.align}>
-                                                        {value}
-                                                    </TableCell>
-                                                );
-                                            })}
+                        <Grid item xs={12} sm={7}>
+                            <TableContainer className={classes.container}>
+                                <Table stickyHeader aria-label="sticky table">
+                                    <TableHead >
+                                        <TableRow >
+                                            {columns.map((column) => (
+                                                <TableCell key={column.id} align={column.align} style={{ minWidth: column.minWidth, backgroundColor:'#a239ca'}}>
+                                                    {column.label}
+                                                </TableCell>
+                                            ))}
                                         </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                    </TableHead>
+                                    <TableBody>
+                                        {console.log(cover)}
+                                        {console.log(rows)}
+                                        {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: Song) => {
+                                            console.log(row)
+                                            return (
+                                                <TableRow hover role="checkbox" tabIndex={-1} key={row.track}>
+                                                    {columns.map((column) => {
+                                                        const value = row[column.id];
+                                                        return (
+                                                            <TableCell key={column.id} align={column.align}>
+                                                                {value}
+                                                            </TableCell>
+                                                        );
+                                                    })}
+                                                    <Divider />
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                            <TablePagination
+                                rowsPerPageOptions={[10, 25, 100]}
+                                component="div"
+                                count={rows.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onChangePage={handleChangePage}
+                                onChangeRowsPerPage={handleChangeRowsPerPage}
+                            />
                         </Grid>
                     </Grid>
                 </Paper > : <div></div>}

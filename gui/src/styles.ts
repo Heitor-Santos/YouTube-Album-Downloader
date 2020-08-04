@@ -6,10 +6,12 @@ const useStyles = makeStyles({
     },
     container: {
         maxHeight: 440,
-        alignContent: 'right'
     },
     button: {
         height: 40
+    },
+    pages:{
+        height:'100vh',
     }
 });
 export default useStyles

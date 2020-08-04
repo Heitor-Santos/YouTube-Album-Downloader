@@ -51,7 +51,7 @@ function AlbumsList(props: ListProps) {
         setPage(0);
     };
     return (
-        <Container>
+        <Container className={classes.pages}>
             {rows.length ?
                 <Paper className={classes.root}>
                     <TableContainer className={classes.container}>

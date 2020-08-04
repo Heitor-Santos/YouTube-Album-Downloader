@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import 'fontsource-roboto';
-import { BrowserRouter, Switch, Route, Redirect , useHistory, withRouter} from 'react-router-dom'
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 

@@ -22,6 +22,12 @@ app.get('/download', async (req, res) => {
         console.log(err)
     }
 })
+app.get('/videoinfo', async (req, res)=>{
+    console.log('oi'+ req.query.videoURL)
+    const info = await ytdl.getInfo(req.query.videoURL as string)
+    console.log(info)
+    return res.json(info)
+})
 app.listen(3333, () => {
     console.log('server at the 3333')
 })

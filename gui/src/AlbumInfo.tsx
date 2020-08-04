@@ -10,14 +10,14 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import { makeStyles } from '@material-ui/core/styles';
-import { TablePagination, Card, CardMedia, CardActionArea, CardContent, Typography, Grid, Button, Container } from '@material-ui/core';
+import { TablePagination, Card, CardMedia, CardActionArea, CardContent, Typography, Grid, Button, Container, Box, ListItem, List } from '@material-ui/core';
 import { Album, ListProps, Column, AlbumInfoColumn, Song, InfoProps } from './interfaces'
 import { getAlbumInfo } from './requests'
 
 function AlbumInfo(props: InfoProps) {
     const [rows, setRows] = useState<Array<Song>>([])
     const [cover, setCover] = useState<string>('')
-    useEffect(() => { loadSongsData() }, [])
+    useEffect(() => { loadSongsData() }, [props.match.params.albumName, props.match.params.artist])
     function sec2time(timeInSeconds: number) {
         const minutes = ("0" + Math.floor(timeInSeconds / 60)).slice(-2);
         let seconds = ("0" + (timeInSeconds % 60)).slice(-2);
@@ -25,17 +25,27 @@ function AlbumInfo(props: InfoProps) {
     }
     async function loadSongsData() {
         props.setSearching(true)
-        const resp = await getAlbumInfo(props.match.params.albumName, props.match.params.artist)
-        const rowsY = resp['album']['tracks']['track'].map((song: any) => {
-            return createSong(song['name'], sec2time(song['duration']))
-        })
-        setCover(resp['album']['image'][3]['#text'])
-        setRows(rowsY)
+        console.log('oh')
+        try {
+            const resp = await getAlbumInfo(props.match.params.albumName, props.match.params.artist)
+            if (resp?.album?.tracks?.track.length) {
+                const treatedData = resp.album.tracks.track.map((song: any) => {
+                    return createSong(song.name, sec2time(song.duration))
+                })
+                setCover(resp.album.image[3]['#text'])
+                setRows(treatedData)
+            }
+            else window.location.href = '/noinfotracks'
+        }
+        catch (error) {
+            window.location.href = '/error'
+        }
         props.setSearching(false)
+        console.log('ah')
     }
     const columns: AlbumInfoColumn[] = [
-        { id: 'track', label: 'Faixa', minWidth: 100, align: 'center' },
-        { id: 'length', label: 'Duração', minWidth: 170, align: 'right' }
+        { id: 'track', label: 'Faixa', align: 'center' },
+        { id: 'length', label: 'Duração', align: 'right' }
     ];
     function createSong(track: string, length: string): Song {
         return { track, length };
@@ -62,35 +72,25 @@ function AlbumInfo(props: InfoProps) {
         setPage(0);
     };
     return (
-        <Container>
+        <Box>
             {rows.length ?
-                <Paper className={classes.root}>
-                    <Grid container spacing={4}>
-                        <Grid item>
-                            <img src={cover} />
+                <Paper className={classes.root} style={{ backgroundColor: 'green' }}>
+                    <Grid container>
+                        <Grid item xs={12} sm={6}>
+                            <Container>
+                                <img src={cover} />
+                                <Typography variant="h4">{props.match.params.albumName}</Typography>
+                                <Typography variant="h5">{props.match.params.artist}</Typography>
+                                <Button variant="contained" color="secondary" startIcon={<CloudDownloadIcon />}>Download</Button>
+                            </Container>
                         </Grid>
-                        <Grid item>
-                            <Typography variant="h4">{props.match.params.albumName}</Typography>
-                            <Typography variant="h5">{props.match.params.artist}</Typography>
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                startIcon={<CloudDownloadIcon />}
-                            >
-                                Download
-                    </Button>
-                        </Grid>
-                    </Grid>
-                    <TableContainer className={classes.container}>
+                        <Grid item xs={12} sm={6}>
+                        <TableContainer className={classes.container}>
                         <Table stickyHeader aria-label="sticky table">
                             <TableHead>
                                 <TableRow>
                                     {columns.map((column) => (
-                                        <TableCell
-                                            key={column.id}
-                                            align={column.align}
-                                            style={{ minWidth: column.minWidth }}
-                                        >
+                                        <TableCell key={column.id} align={column.align} style={{ minWidth: column.minWidth }}>
                                             {column.label}
                                         </TableCell>
                                     ))}
@@ -117,17 +117,10 @@ function AlbumInfo(props: InfoProps) {
                             </TableBody>
                         </Table>
                     </TableContainer>
-                    <TablePagination
-                        rowsPerPageOptions={[10, 25, 100]}
-                        component="div"
-                        count={rows.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onChangePage={handleChangePage}
-                        onChangeRowsPerPage={handleChangeRowsPerPage}
-                    />
-                </Paper> : <div></div>}
-        </Container>
+                        </Grid>
+                    </Grid>
+                </Paper > : <div></div>}
+        </Box >
     )
 }
 export default AlbumInfo

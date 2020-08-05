@@ -1,17 +1,12 @@
-import { checkImageExists } from './util'
 export interface Album {
     cover: string;
     title: string;
     artist: string;
 }
 export function createAlbum(cover: string, title: string, artist: string): Album {
-    checkImageExists(cover, function (existsImage:boolean) {
-        if (existsImage !== true) {
-            cover = 'gui/src/assets/broken-1.png'
-        }
-    });
-    if(title===(''||'null'||'(null)'||'unknown'||'Unknown'||'[Unknown]'||'(Unknown)')) title='[Desconhecido]'
-    if(artist===(''||'null'||'(null)'||'unknown'||'Unknown'||'[Unknown]'||'(Unknown)')) artist='[Desconhecido]'
+    const unsupported = ['','null','(null)','unknown','Unknown','[Unknown]','(Unknown)']
+    if(unsupported.includes(title)) title='[Desconhecido]'
+    if(unsupported.includes(artist)) artist='[Desconhecido]'
     return { cover, title, artist };
 }
 export interface ListProps {
@@ -38,8 +33,9 @@ export interface Song {
     length: string;
 }
 export function createSong(track: string, length: string): Song {
-    if(track===(''||'null'||'(null)'||'unknown'||'Unknown'||'[Unknown]'||'(Unknown)')) track='[Desconhecido]'
-    if(length===(''||'null'||'(null)'||'unknown'||'Unknown'||'[Unknown]'||'(Unknown)')) length='[Desconhecido]'
+    const unsupported = ['','null','(null)','unknown','Unknown','[Unknown]','(Unknown)']
+    if(unsupported.includes(track)) track='[Desconhecido]'
+    if(unsupported.includes(length)) length='[Desconhecido]'
     return { track, length };
 }
 export interface InfoProps {
@@ -49,5 +45,8 @@ export interface InfoProps {
             artist: string;
         }
     }
+    videoURL: string,
+    videoTitle: string,
+    videoDuration: number,
     setSearching: Function;
 }

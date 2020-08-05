@@ -4,9 +4,9 @@ import { createBrowserHistory } from 'history';
 import './App.css';
 import AlbumsList from './AlbumsList'
 import AlbumInfo from './AlbumInfo'
-import { Container, TextField, List, ListItem, Button, CircularProgress, Box, Typography, Grid}  from '@material-ui/core';
+import { Container, TextField, List, ListItem, Button, CircularProgress, Box, Typography}  from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
-import { getVideoInfo, downloadAlbum } from './requests'
+import { getVideoInfo} from './requests'
 import useStyles from './styles'
 
 const history = createBrowserHistory()
@@ -17,16 +17,8 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false)
   const [albumTitle, setAlbumTitle] = useState<string>('')
   const [numberSearches, setNumberSearches] = useState<number>(0)
+  const [videoDuration, setVideoDuration]=useState<number>(0)
 
-  async function download() {
-    const download = await downloadAlbum(videoURL)
-    const url = window.URL.createObjectURL(new Blob([download]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'video2.flv')
-    document.body.appendChild(link)
-    link.click()
-  }
   async function loadVideoInfo() {
     setLoading(true)
     setVideoTitle('')
@@ -34,8 +26,11 @@ function App() {
     const match = re.test(videoURL)
     if(match){
       const resp = await getVideoInfo(videoURL)
-      if(resp?.videoDetails?.title!=='')
+      console.log(resp)
+      if(resp?.videoDetails?.title!=='' && resp?.videoDetails?.lengthSeconds!==''){
         setVideoTitle(resp.videoDetails.title)
+        setVideoDuration(resp.videoDetails.lengthSeconds)
+      }        
       else
       setVideoTitle('Ocorreu um erro')
     }
@@ -85,7 +80,7 @@ function App() {
               <Route path='/noresults'><h1>ohdaddy</h1></Route>
               <Route path='/error'><h1>ohdaddy</h1></Route>
               <Route path='/noinfotracks'><h1>sem info das faixas</h1></Route>
-              <Route path='/album=:albumName&artist=:artist' render={(props) => <AlbumInfo {...props} setSearching={(e: boolean) => setSearching(e)} />}></Route>
+              <Route path='/album=:albumName&artist=:artist' render={(props) => <AlbumInfo {...props} setSearching={(e: boolean) => setSearching(e)} videoTitle={videoTitle} videoURL={videoURL} videoDuration={videoDuration}/>}></Route>
             </Switch>
           </Box>
           <footer style={{ position: 'relative', marginTop:'5px' }}>

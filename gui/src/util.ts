@@ -8,3 +8,8 @@ export function checkImageExists(imageUrl:string, callBack:Function) {
     };
     imageData.src = imageUrl;
 }
+export function sec2time(timeInSeconds: number) {
+    const minutes = ("0" + Math.floor(timeInSeconds / 60)).slice(-2);
+    let seconds = ("0" + (timeInSeconds % 60)).slice(-2);
+    return `${minutes}:${seconds}`
+}

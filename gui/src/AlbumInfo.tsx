@@ -8,12 +8,11 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import { TablePagination, Typography, Grid, Button, Container, Box,  Divider } from '@material-ui/core';
-import {AlbumInfoColumn, Song, InfoProps, createSong} from './interfaces'
+import { TablePagination, Typography, Grid, Button, Container, Box, Divider } from '@material-ui/core';
+import { AlbumInfoColumn, Song, InfoProps, createSong } from './interfaces'
 import { getAlbumInfo, downloadAlbum } from './requests'
 import useStyles from './styles'
-import {sec2time} from './util'
-
+import { sec2time, labelRows } from './util'
 function AlbumInfo(props: InfoProps) {
     const [rows, setRows] = useState<Array<Song>>([])
     const [cover, setCover] = useState<string>('')
@@ -30,7 +29,7 @@ function AlbumInfo(props: InfoProps) {
                     const treatedData = resp.album.tracks.track.map((song: any) => {
                         return createSong(song.name, song.duration)
                     })
-                    setCover(resp?.album?.image[3]['#text']||'[Sem capa]')
+                    setCover(resp?.album?.image[3]['#text'] || '[Sem capa]')
                     setRows(treatedData)
                 }
                 else window.location.href = '/noinfotracks'
@@ -42,19 +41,19 @@ function AlbumInfo(props: InfoProps) {
         }
         loadSongsData()
     }, [props.match.params.albumName, props.match.params.artist])
-    useEffect(()=>{
-        const unsupported=['Isso não é um link do YouTube','Ocorreu um erro','']
-        const albumDuration = rows.reduce((songPrev,songCurr)=>{
-            return {length: (parseInt(songPrev.length)+parseInt(songCurr.length)).toString(),track:'useless'}
-        },{length:'0',track:'useles'})
-        if(unsupported.includes(props.videoTitle)||parseInt(albumDuration.length)>props.videoDuration){
+    useEffect(() => {
+        const unsupported = ['Isso não é um link do YouTube', 'Ocorreu um erro', '']
+        const albumDuration = rows.reduce((songPrev, songCurr) => {
+            return { length: (parseInt(songPrev.length) + parseInt(songCurr.length)).toString(), track: 'useless' }
+        }, { length: '0', track: 'useles' })
+        if (unsupported.includes(props.videoTitle) || parseInt(albumDuration.length) > props.videoDuration) {
             setDisabled(true)
-            if(parseInt(albumDuration.length)>props.videoDuration)
+            if (parseInt(albumDuration.length) > props.videoDuration)
                 setDurationError(true)
         }
-        else 
+        else
             setDisabled(false)
-    },[props.videoTitle,props.videoDuration])
+    }, [props.videoTitle, props.videoDuration])
     async function download() {
         const download = await downloadAlbum(props.videoURL)
         const url = window.URL.createObjectURL(new Blob([download]))
@@ -63,7 +62,7 @@ function AlbumInfo(props: InfoProps) {
         link.setAttribute('download', `${props.match.params.albumName}.zip`)
         document.body.appendChild(link)
         link.click()
-      }
+    }
     const columns: AlbumInfoColumn[] = [
         { id: 'track', label: 'Faixa', align: 'center' },
         { id: 'length', label: 'Duração', align: 'right' }
@@ -83,11 +82,11 @@ function AlbumInfo(props: InfoProps) {
                     <Grid container>
                         <Grid item xs={12} sm={5} style={{ borderRight: 'solid thin #d3d3d3' }}>
                             <Container>
-                                <img src={cover} style={{ border: 'solid thin gray' }} alt='[Sem capa]'/>
+                                <img src={cover} style={{ border: 'solid thin gray' }} alt='[Sem capa]' />
                                 <Typography variant="h4">{props.match.params.albumName}</Typography>
                                 <Typography variant="h5">{props.match.params.artist}</Typography>
-                                <Button variant="contained" disabled={disabled} onClick={()=>download()} style={{ backgroundColor: "#4717f6", marginBottom: '5px' }} startIcon={<CloudDownloadIcon />}>Download</Button>
-                                {durationError?<Typography variant="body2"><i>Álbum mais longo que o vídeo</i></Typography>:null}
+                                <Button variant="contained" disabled={disabled} onClick={() => download()} style={{ backgroundColor: "#4717f6", marginBottom: '5px' }} startIcon={<CloudDownloadIcon />}>Download</Button>
+                                {durationError ? <Typography variant="body2"><i>Álbum mais longo que o vídeo</i></Typography> : null}
                             </Container>
                         </Grid>
                         <Grid item xs={12} sm={7}>
@@ -111,7 +110,7 @@ function AlbumInfo(props: InfoProps) {
                                                         const value = row[column.id];
                                                         return (
                                                             <TableCell key={column.id} align={column.align}>
-                                                                {column.id==='length'?sec2time(parseInt(value)): value}
+                                                                {column.id === 'length' ? sec2time(parseInt(value)) : value}
                                                             </TableCell>
                                                         );
                                                     })}
@@ -127,6 +126,8 @@ function AlbumInfo(props: InfoProps) {
                                 component="div"
                                 count={rows.length}
                                 rowsPerPage={rowsPerPage}
+                                labelRowsPerPage='Linhas por página'
+                                labelDisplayedRows={() => labelRows(page, rowsPerPage, rows.length)}
                                 page={page}
                                 onChangePage={handleChangePage}
                                 onChangeRowsPerPage={handleChangeRowsPerPage}

@@ -12,6 +12,8 @@ import { Album, createAlbum, ListProps, Column } from './interfaces'
 import { Link } from 'react-router-dom';
 import { getAlbumsList } from './requests'
 import useStyles from './styles'
+import {labelRows} from './util'
+
 function AlbumsList(props: ListProps) {
     useEffect(() => {
         async function loadAlbunsData() {
@@ -53,16 +55,16 @@ function AlbumsList(props: ListProps) {
     return (
         <Container className={classes.pages}>
             {rows.length ?
-                <Paper className={classes.root}>
+                <Paper className={classes.root} style={{ backgroundColor: '#e7dfdd' }}>
                     <TableContainer className={classes.container}>
                         <Table stickyHeader aria-label="sticky table">
                             <TableHead>
                                 <TableRow>
                                     {columns.map((column) => (
-                                        <TableCell
+                                        <TableCell 
                                             key={column.id}
                                             align={column.align}
-                                            style={{ minWidth: column.minWidth }}
+                                            style={{ minWidth: column.minWidth, backgroundColor: '#a239ca' }}
                                         >
                                             {column.label}
                                         </TableCell>
@@ -80,7 +82,7 @@ function AlbumsList(props: ListProps) {
                                                 const value = row[column.id];
                                                 return (
                                                     <TableCell key={column.id} align={column.align}>
-                                                        {column.id === 'cover' && typeof value === 'string' ? <img src={value} /> : value}
+                                                        {column.id === 'cover' && typeof value === 'string' ? <img src={value} alt='[Sem capa]' /> : value}
                                                     </TableCell>
                                                 );
                                             })}
@@ -96,7 +98,7 @@ function AlbumsList(props: ListProps) {
                         count={rows.length}
                         rowsPerPage={rowsPerPage}
                         labelRowsPerPage='Linhas por página'
-                        labelDisplayedRows={() => { return `${page * rowsPerPage + 1}-${page * rowsPerPage + rowsPerPage} de ${rows.length}` }}
+                        labelDisplayedRows={()=>labelRows(page, rowsPerPage, rows.length)}
                         page={page}
                         onChangePage={handleChangePage}
                         onChangeRowsPerPage={handleChangeRowsPerPage}

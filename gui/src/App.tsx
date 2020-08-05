@@ -73,7 +73,7 @@ function App() {
               {searching ? <div><CircularProgress /></div> : null}
             </ListItem>
           </List>
-          <Box style={{ minHeight: '55vh' }}>
+          <Box style={{ minHeight: '53vh' }}>
             <Switch>
               <Route path='/albumsresults' exact={true} render={(props) => <AlbumsList {...props} albumName={albumTitle} numberSearches={numberSearches} setSearching={(e: boolean) => setSearching(e)} />}></Route>
               <Route path='/oi'><h1>OOOOIII</h1></Route>
@@ -85,6 +85,7 @@ function App() {
           </Box>
           <footer style={{ position: 'relative', marginTop:'5px' }}>
           <Typography variant="body2" style={{textAlign:'center', color:'#0e0b16'}}>Desenvolvido por <a style={{color:'#0e0b16'}} href='https://github.com/Heitor-Santos'> Heitor Santos</a></Typography>
+          <Typography variant='body2' style={{textAlign:'center', color:'#0e0b16'}}>Me siga no <a style={{color:'#0e0b16'}} href='https://www.last.fm/pt/user/tuto_'>last.fm</a>!</Typography> 
             </footer>
         </Container>
       </Box>

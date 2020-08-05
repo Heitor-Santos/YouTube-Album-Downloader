@@ -11,7 +11,7 @@ const useStyles = makeStyles({
         height: 40
     },
     pages:{
-        height:'100vh',
+        //height: '100vh'
     }
 });
 export default useStyles

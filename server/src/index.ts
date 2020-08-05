@@ -23,9 +23,13 @@ app.get('/download', async (req, res) => {
     }
 })
 app.get('/videoinfo', async (req, res)=>{
-    console.log('oi'+ req.query.videoURL)
-    const info = await ytdl.getInfo(req.query.videoURL as string)
-    console.log(info)
+    let info={}
+    try{
+        info = await ytdl.getInfo(req.query.videoURL as string)
+    }
+    catch(error){
+        info={}
+    }
     return res.json(info)
 })
 app.listen(3333, () => {

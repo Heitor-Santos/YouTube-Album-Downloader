@@ -17,18 +17,18 @@ function AlbumsList(props: ListProps) {
         async function loadAlbunsData() {
             try {
                 const resp = await getAlbumsList(props.albumName)
-                if(resp?.results?.albummatches?.album?.length){
+                if (resp?.results?.albummatches?.album?.length) {
                     const treatedData = resp.results.albummatches.album.map((album: any) => {
                         return createAlbum(album['image'][1]['#text'], album['name'], album['artist'])
                     })
                     setRows(treatedData)
                 }
-                else{
-                    window.location.href='/noresults'
+                else {
+                    window.location.href = '/noresults'
                 }
             }
-            catch(error){
-                window.location.href='/error'
+            catch (error) {
+                window.location.href = '/error'
             }
             props.setSearching(false)
         }

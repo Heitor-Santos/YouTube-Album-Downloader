@@ -17,6 +17,9 @@
     "@types/express": "^4.17.7",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "ffmetadata": "^1.6.0",
+    "ffmpeg": "0.0.4",
+    "ffmpeg-static": "^4.2.6",
     "tslint": "^6.1.2",
     "typescript": "^3.9.7",
     "ytdl-core": "^3.1.3"

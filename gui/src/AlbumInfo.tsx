@@ -50,6 +50,8 @@ function AlbumInfo(props: InfoProps) {
             setDisabled(true)
             if (parseInt(albumDuration.length) > props.videoDuration)
                 setDurationError(true)
+            else 
+            setDurationError(false)
         }
         else
             setDisabled(false)

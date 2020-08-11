@@ -79,6 +79,7 @@ function AlbumInfo(props: InfoProps) {
     };
     return (
         <Box className={classes.pages}>
+            {console.log(rows)}
             {rows.length ?
                 <Paper className={classes.root} style={{ backgroundColor: '#e7dfdd' }}>
                     <Grid container>

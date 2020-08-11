@@ -4,94 +4,42 @@ import ytdl from 'ytdl-core';
 import fs from 'fs'
 import cors from 'cors'
 import ffmpeg from 'ffmpeg'
-import ffmeta from 'ffmetadata'
 import { v4 as uuidv4 } from 'uuid';
+import splitVideo from './splitVideo'
 
+interface processState {
+    songsReady: number,
+    songsMeta: number,
+    songsMP3: number,
+    songSplit: number,
+}
+interface song {
+    track: string,
+    length: string
+}
 const app = express()
 app.use(express.json())
 app.use(bodyParser.json())
 app.use(cors())
 
-function splitVideo(videoSrc: string, songBegin: number, song: { 'track': string, 'length': string }, i, dir, artist: string, album: string, linkCover: string) {
-    const processVideo = new ffmpeg(videoSrc)
-    console.log(i, songBegin, song.length)
-    processVideo.then(function (video) {
-        console.log(i, songBegin, song.length, 'PROCESSO')
-        const start = Date.now()
-        video.setVideoStartTime(songBegin)
-        video.setVideoDuration(parseInt(song.length))
-        let dest = `${dir}/${song.track.replace(/ /g, '***')}.mp4`
-        dest = dest.replace(/'/g, '%%%')
-        dest = dest.replace(/"/g, '@@@')
-        video.save(dest, (err, splitedVideo) => {
-            if (err) console.log("linha 21" + err)
-            else {
-                console.log('salvou')
-                const bit = Date.now() - start
-                console.log(bit)
-                extractMP3(dest, song, dir, artist, album, linkCover, i)
-            }
-        })
-    })
-}
-function extractMP3(videoSrc: string, song: { 'track': string, 'length': string }, dir: string, artist: string, album: string, linkCover: string, i: number) {
-    const processVideo = new ffmpeg(videoSrc)
-    console.log(song.track)
-    let dest = `${dir}/${song.track.replace(/ /g, '***')}.mp3`
-    dest = dest.replace(/'/g, '%%%')
-    dest = dest.replace(/"/g, '@@@')
-    console.log(dest)
-    processVideo.then((video) => {
-        video.fnExtractSoundToMP3(dest, (err, file) => {
-            if (!err) {
-                    applyMetadata(artist, album, song.track, i, linkCover, dir)
-                    console.log("mp3: " + file)
-            }
-            else {
-                console.log('erro extraindo MP3')
-                console.log(err)
-            }
-        })
-    })
-}
-function applyMetadata(artist: string, album: string, songName: string, i: number, linkCover, dir: string) {
-    var data = {
-        artist: artist,
-        album: album,
-        title: songName,
-        track: i.toString()
-    };
-    var options = {
-        attachments: [linkCover],
-    };
-    let dest = `${dir}/${songName.replace(/ /g, '***')}.mp3`
-    dest = dest.replace(/'/g, '%%%')
-    dest = dest.replace(/"/g, '@@@')
-    ffmeta.write(dest, data, options, function (err) {
-        if (err) console.error("Error writing metadata", err);
-        else {
-            console.log("Data written" + i);
-            fs.rename(dest, `${dir}/${songName}.mp3`,()=>{
-                console.log("ACABOU!!")
-            })
-        }
-    });
-}
 app.get('/download', async (req, res) => {
-    console.log('downlaod')
+    console.log('Começou o download!')
     try {
-        const songs = req.body.songs
+        const songs: song[] = req.body.songs
         const dir = uuidv4();
         const title = uuidv4();
-        const artist = req.body.artist
-        const album = req.body.album
-        const linkCover = req.body.linkCover
+        const artist: string = req.body.artist
+        const album: string = req.body.album
+        const linkCover: string = req.body.linkCover
         const videoURL: string = req.query.videoURL as string
         const ytReadable = ytdl(videoURL, {
             quality: 'highestaudio'
         })
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir);
+        }
+        if (!fs.existsSync(`${dir}/songs`)) {
+            fs.mkdirSync(`${dir}/songs`);
         }
         const writeable = ytReadable.pipe(fs.createWriteStream(`${dir}/${title}.mp4`));
         ytReadable.on('progress', (chunk, downloaded, total) => {
@@ -102,24 +50,22 @@ app.get('/download', async (req, res) => {
         ytReadable.on('end', () => {
             const processVideo = new ffmpeg(`${dir}/${title}.mp4`)
             processVideo.then(function (video) {
-                const start = Date.now()
                 video.setAudioBitRate(128)
                 video.save(`${dir}/${title}PROCESSED.mp4`, (err, file) => {
-                    if (err) console.log(err)
+                    if (err) throw new Error('erro fazendo download do vídeo!')
                     else {
-                        console.log('salvou')
-                        console.log(Date.now() - start)
+                        console.log('\nTerminou de baixar!')
                         let songBegin = 0
+                        let process: processState = { songsReady: 0, songSplit: 0, songsMP3: 0, songsMeta: 0 }
                         for (let i = 0; i < songs.length; i++) {
-                            splitVideo(`${dir}/${title}PROCESSED.mp4`, songBegin, songs[i], i, dir, artist, album, linkCover)
+                            splitVideo(songs.length, `${dir}/${title}PROCESSED.mp4`, songBegin, songs[i], i, dir, artist, album, linkCover, process, res)
                             songBegin += parseInt(songs[i].length) + 1
                         }
                     }
                 })
             }, function (err) {
-                console.log('Error: ' + err);
+                throw new Error('erro geral!')
             })
-            return res.json('cabou')
         })
     }
     catch (err) {
@@ -138,7 +84,7 @@ app.get('/videoinfo', async (req, res) => {
 })
 app.listen(3333, () => {
     console.log('server at the 3333')
-    const songs = [
+    /*const songs = [
         { "track": "Five Years", "length": "282" },
         { "track": "Soul Love", "length": "214" },
         { "track": "Moonage Daydream", "length": "277" },
@@ -158,5 +104,5 @@ app.listen(3333, () => {
     for (let i = 0; i < songs.length; i++) {
         splitVideo(`teste/teste.mp4`, songBegin, songs[i], i, 'teste', artist, album, linkCover)
         songBegin += parseInt(songs[i].length) + 1
-    }
+    }*/
 })

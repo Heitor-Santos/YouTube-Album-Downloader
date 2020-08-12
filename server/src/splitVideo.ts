@@ -2,6 +2,7 @@ import ffmpeg from 'ffmpeg'
 import ffmeta from 'ffmetadata'
 import archiver from 'archiver'
 import fs from 'fs'
+import socket from 'socket.io'
 
 interface processState {
     songsReady: number,
@@ -13,7 +14,7 @@ interface song {
     track: string,
     length: string
 }
-function splitVideo(numberTracks: number, videoSrc: string, songBegin: number, song: song, i, dir, artist: string, album: string, linkCover: string, process: processState, res:any) {
+function splitVideo(numberTracks: number, videoSrc: string, songBegin: number, song: song, i, dir, artist: string, album: string, linkCover: string, process: processState, res:any, socket: socket.Socket) {
     const processVideo = new ffmpeg(videoSrc)
     processVideo.then(function (video) {
         video.setVideoStartTime(songBegin)
@@ -24,14 +25,16 @@ function splitVideo(numberTracks: number, videoSrc: string, songBegin: number, s
         video.save(dest, (err, splitedVideo) => {
             if (err) throw new Error('erro separando o vídeo!')
             else {
-                if (++process.songSplit == 1)
+                if (++process.songSplit == 1){
+                    socket.emit('step', 'Separando as faixas')
                     console.log('Início da separação!')
-                extractMP3(numberTracks, dest, song, dir, artist, album, linkCover, i, process, res)
+                }
+                extractMP3(numberTracks, dest, song, dir, artist, album, linkCover, i, process, res, socket)
             }
         })
     })
 }
-function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: string, artist: string, album: string, linkCover: string, i: number, process: processState, res:any) {
+function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: string, artist: string, album: string, linkCover: string, i: number, process: processState, res:any, socket: socket.Socket) {
     const processVideo = new ffmpeg(videoSrc)
     let dest = `${dir}/songs/${song.track.replace(/ /g, '***')}.mp3`
     dest = dest.replace(/'/g, '%%%')
@@ -39,9 +42,11 @@ function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: str
     processVideo.then((video) => {
         video.fnExtractSoundToMP3(dest, (err, file) => {
             if (!err) {
-                if (++process.songsMP3 == 1)
+                if (++process.songsMP3 == 1){
+                    socket.emit('step', 'Extraindo os MP3')
                     console.log('Início da extração!')
-                applyMetadata(numberTracks, artist, album, song.track, i, linkCover, dir, process, res)
+                }
+                applyMetadata(numberTracks, artist, album, song.track, i, linkCover, dir, process, res, socket)
             }
             else {
                 throw new Error('erro extraindo o MP3!')
@@ -49,7 +54,7 @@ function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: str
         })
     })
 }
-function applyMetadata(numberTracks: number, artist: string, album: string, songName: string, i: number, linkCover, dir: string, process: processState, res:any) {
+function applyMetadata(numberTracks: number, artist: string, album: string, songName: string, i: number, linkCover, dir: string, process: processState, res:any, socket: socket.Socket) {
     var data = {
         artist: artist,
         album: album,
@@ -65,10 +70,13 @@ function applyMetadata(numberTracks: number, artist: string, album: string, song
     ffmeta.write(dest, data, options, function (err) {
         if (err) throw new Error('erro aplicando metadados!')
         else {
-            if (++process.songsMeta == 1)
+            if (++process.songsMeta == 1){
+                socket.emit('step', 'Aplicando metadados')
                 console.log('Início da aplicação de metadados!')
+            }
             fs.rename(dest, `${dir}/songs/${songName}.mp3`, () => {
-                if (process.songsMeta == numberTracks - 1) {
+                if (process.songsMeta == numberTracks) {
+                    socket.emit('step', 'Compactando dados')
                     compactAlbum(dir, album, res)
                 }
             })
@@ -95,7 +103,7 @@ function compactAlbum(dir: string, album: string,res:any) {
     });
     archive.on('warning', function (err) {
         if (err.code === 'ENOENT') {
-            console.log(err)
+            console.log( err)
         } else {
             throw err;
         }
@@ -106,18 +114,20 @@ function compactAlbum(dir: string, album: string,res:any) {
 
 }
 function destroyGarbage(dir: string){
+    let listFiles=[]
     fs.readdir(dir,(err, files)=>{
         if(err) throw err;
         else{
-            files.map(file=>{
-                if(file.endsWith('mp4')){
-                    fs.unlinkSync(file)
-                }
-            })
-            setTimeout(()=>{
-                fs.rmdirSync(dir, { recursive: true })
-            },600000)
+            listFiles = files
         }
+        listFiles.map(file=>{
+            if(file.endsWith('mp4')){
+                fs.unlinkSync(`${dir}/${file}`)
+            }
+        })
+        setTimeout(()=>{
+            fs.rmdirSync(dir, { recursive: true })
+        },600000)
     })
 }
 export default splitVideo

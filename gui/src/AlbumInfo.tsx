@@ -8,15 +8,21 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import { TablePagination, Typography, Grid, Button, Container, Box, Divider } from '@material-ui/core';
+import { TablePagination, Typography, Grid, Button, Container, Box, Divider, CircularProgress } from '@material-ui/core';
 import { AlbumInfoColumn, Song, InfoProps, createSong } from './interfaces'
 import { getAlbumInfo, downloadAlbum } from './requests'
 import useStyles from './styles'
 import { sec2time, labelRows } from './util'
+import socket from 'socket.io-client'
+let io;
+
 function AlbumInfo(props: InfoProps) {
     const [rows, setRows] = useState<Array<Song>>([])
     const [cover, setCover] = useState<string>('')
     const [disabled, setDisabled] = useState<boolean>(true)
+    const [downloading, setDownloading]= useState<boolean>(false)
+    const [percentDown,setPercentDown] = useState<number>(0)
+    const [step, setStep] = useState<string>('')
     const [durationError, setDurationError] = useState<boolean>(false)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -46,6 +52,7 @@ function AlbumInfo(props: InfoProps) {
         const albumDuration = rows.reduce((songPrev, songCurr) => {
             return { length: (parseInt(songPrev.length) + parseInt(songCurr.length)).toString(), track: 'useless' }
         }, { length: '0', track: 'useles' })
+        setDurationError(false)
         if (unsupported.includes(props.videoTitle) || parseInt(albumDuration.length) > props.videoDuration) {
             setDisabled(true)
             if (parseInt(albumDuration.length) > props.videoDuration)
@@ -57,13 +64,28 @@ function AlbumInfo(props: InfoProps) {
             setDisabled(false)
     }, [props.videoTitle, props.videoDuration])
     async function download() {
-        const download = await downloadAlbum(props.videoURL)
+        setDownloading(true)
+        setDisabled(true)
+        io = socket('http://localhost:3333')
+        io.on('connect',()=>{console.log('conectou')})
+        io.on('step',(step: string)=>{setStep(step)})
+        io.on('prdwn',(progress:number)=>progressDownload(progress))
+        const download = await downloadAlbum(props.videoURL,props.match.params.artist, 
+            props.match.params.albumName, rows, cover)
         const url = window.URL.createObjectURL(new Blob([download]))
         const link = document.createElement('a')
         link.href = url
         link.setAttribute('download', `${props.match.params.albumName}.zip`)
         document.body.appendChild(link)
         link.click()
+        setStep('Download finalizado!')
+    }
+    function progressDownload(progress:number){
+        if(progress===100){
+            setDownloading(false)
+            setStep('Processando o vídeo')
+        }
+        else setPercentDown(progress)
     }
     const columns: AlbumInfoColumn[] = [
         { id: 'track', label: 'Faixa', align: 'center' },
@@ -90,6 +112,9 @@ function AlbumInfo(props: InfoProps) {
                                 <Typography variant="h5">{props.match.params.artist}</Typography>
                                 <Button variant="contained" disabled={disabled} onClick={() => download()} style={{ backgroundColor: "#4717f6", marginBottom: '5px' }} startIcon={<CloudDownloadIcon />}>Download</Button>
                                 {durationError ? <Typography variant="body2"><i>Álbum mais longo que o vídeo</i></Typography> : null}
+                                {downloading ? <div><Typography variant="body2"><i>{`Download do vídeo: ${percentDown}%`}</i></Typography><CircularProgress value={percentDown}/></div> : null}
+                                {step!==''&& step!=='Download finalizado!' ? <div><Typography variant="body2"><i>{step}</i></Typography><CircularProgress/></div> : null}
+                                {step==='Download finalizado!'?<Typography variant="body2"><i>{step}</i></Typography>: null}
                             </Container>
                         </Grid>
                         <Grid item xs={12} sm={7}>

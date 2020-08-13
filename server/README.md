@@ -6,7 +6,7 @@ Servidor para o Youtube Album Downloader.
 
 Para executar esse servidor, é preciso ter instalado na sua máquina o ffmpeg. Isso pode ser feito rodando o seguinte comando:
 
-    sudo apt install ffmpeg
+    sudo snap install ffmpeg
 
 
 ### configurando

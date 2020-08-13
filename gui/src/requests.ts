@@ -1,7 +1,7 @@
 import axios from 'axios'
 import {Song} from './interfaces'
 const api = axios.create({
-    baseURL: 'http://localhost:3333'
+    baseURL: 'https://ytadserver.herokuapp.com/'
 });
 
 const lastFmApi = axios.create({

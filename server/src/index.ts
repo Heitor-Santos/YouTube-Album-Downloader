@@ -28,7 +28,11 @@ const io = socket(server)
 io.on('connection',(socket)=>{
     console.log('conectou')
     //socket.emit('odio','tbm te odeio')
-    //console.log(socket)
+    //console.log(socket)oo
+    app.options('/download', async(req, res)=>{
+        res.setHeader('Access-Control-Allow-Origin', 'https://yt-album-downloader.web.app')
+        return res.json('deixa')
+    })
     app.post('/download', async (req, res) => {
         console.log('Começou o download!')
         try {

@@ -66,19 +66,21 @@ function AlbumInfo(props: InfoProps) {
     async function download() {
         setDownloading(true)
         setDisabled(true)
-        io = socket('http://localhost:3333')
+        io = socket('https://ytadserver.herokuapp.com/')
         io.on('connect',()=>{console.log('conectou')})
         io.on('step',(step: string)=>{setStep(step)})
         io.on('prdwn',(progress:number)=>progressDownload(progress))
-        const download = await downloadAlbum(props.videoURL,props.match.params.artist, 
-            props.match.params.albumName, rows, cover)
-        const url = window.URL.createObjectURL(new Blob([download]))
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', `${props.match.params.albumName}.zip`)
-        document.body.appendChild(link)
-        link.click()
-        setStep('Download finalizado!')
+        setTimeout(async()=>{
+            const download = await downloadAlbum(props.videoURL,props.match.params.artist, 
+                props.match.params.albumName, rows, cover)
+            const url = window.URL.createObjectURL(new Blob([download]))
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', `${props.match.params.albumName}.zip`)
+            document.body.appendChild(link)
+            link.click()
+            setStep('Download finalizado!')
+        },5000)
     }
     function progressDownload(progress:number){
         if(progress===100){

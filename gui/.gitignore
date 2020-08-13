@@ -1,8 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/gui/node_modules
-/server/node_modules
 /node_modules
 /.pnp
 .pnp.js
@@ -11,9 +9,6 @@
 /coverage
 
 # production
-/gui/build
-/gui/.git
-/server/.git
 /build
 /server/dist/index.js
 /server/dist/index.js.map

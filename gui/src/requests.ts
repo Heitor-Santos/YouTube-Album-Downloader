@@ -1,20 +1,23 @@
 import axios from 'axios'
 import {Song} from './interfaces'
 const api = axios.create({
-    baseURL: 'https://ytadserver.herokuapp.com/'
+    baseURL: 'https://corsytad.herokuapp.com/https://ytadserver.herokuapp.com/',
+    withCredentials: true
 });
 
 const lastFmApi = axios.create({
-    baseURL: 'http://ws.audioscrobbler.com/2.0'
+    baseURL: 'https://ws.audioscrobbler.com/2.0'
 })
 export const getVideoInfo = async(videoURL:string)=>{
-    const resp = await api.get(`/videoinfo?videoURL=${videoURL}`)
+    console.log('linknv')
+    const resp = await api.get(`/videoinfo?videoURL=${videoURL}`,{withCredentials:true})
     return resp.data
 }
 export const downloadAlbum = async(videoURL: string, artist: string, album:string, songs:Song[], linkCover:string)=>{
-    
+    console.log('nova versão')
     const resp = await api.post(`/download?videoURL=${videoURL}`,{songs,artist,album,linkCover},{
         responseType: 'blob',
+        withCredentials:true
     })
     return resp.data
 }

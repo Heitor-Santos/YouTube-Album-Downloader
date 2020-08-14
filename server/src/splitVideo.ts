@@ -96,7 +96,7 @@ function compactAlbum(dir: string, album: string,res:any) {
         console.log(archive.pointer() + ' total bytes');
         console.log('archiver has been finalized and the output file descriptor has closed.');
         destroyGarbage(dir)
-        res.setHeader('Access-Control-Allow-Origin', 'https://yt-album-downloader.web.app');
+        // /res.setHeader('Access-Control-Allow-Origin', 'https://yt-album-downloader.web.app');
         res.download(`${dir}/${album}.zip`)
         //return res.json({'oi':'ola'})
     });

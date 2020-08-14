@@ -20,20 +20,21 @@ interface song {
     length: string
 }
 const app = express()
+app.use('*',cors({origin: 'https://yt-album-downloader.web.app'}))
+app.options('*',cors({origin: 'https://yt-album-downloader.web.app'}))
 app.use(express.json())
 app.use(bodyParser.json())
-app.use(cors())
 const server = http.createServer(app)
 const io = socket(server)
 io.on('connection',(socket)=>{
     console.log('conectou')
     //socket.emit('odio','tbm te odeio')
     //console.log(socket)oo
-    app.options('/download', async(req, res)=>{
-        res.setHeader('Access-Control-Allow-Origin', 'https://yt-album-downloader.web.app')
+    /*app.options('/download', async(req, res)=>{
+        //res.setHeader('Access-Control-Allow-Origin', 'https://yt-album-downloader.web.app')
         return res.json('deixa')
-    })
-    app.post('/download', async (req, res) => {
+    })*/
+    app.post('/download', cors({origin: 'https://yt-album-downloader.web.app'}), async (req, res) => {
         console.log('Começou o download!')
         try {
             const songs: song[] = req.body.songs

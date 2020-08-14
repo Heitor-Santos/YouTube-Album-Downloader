@@ -66,7 +66,7 @@ function AlbumInfo(props: InfoProps) {
     async function download() {
         setDownloading(true)
         setDisabled(true)
-        io = socket('https://ytadserver.herokuapp.com/')
+        io = socket('https://corsytad.herokuapp.com/https://ytadserver.herokuapp.com/')
         io.on('connect',()=>{console.log('conectou')})
         io.on('step',(step: string)=>{setStep(step)})
         io.on('prdwn',(progress:number)=>progressDownload(progress))

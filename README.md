@@ -10,8 +10,8 @@ Procurar torrent ou qualquer outra forma de fazer download de um álbum que não
 Você pode conferir as configurações do servidor [aqui](/server/README.md).
 Você pode conferir as configurações da interface gráfica [aqui](/gui/README.md).  
 
-## Live preview
-Um preview funcional está disponível [aqui](https://yt-album-downloader.web.app).
+## Live demo
+Uma demo funcional está disponível [aqui](https://yt-album-downloader.web.app).
 
 ## last.fm
 Me siga no [last.fm](https://www.last.fm/pt/user/tuto_) ;)))

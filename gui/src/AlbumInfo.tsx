@@ -10,11 +10,11 @@ import Paper from '@material-ui/core/Paper';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import { TablePagination, Typography, Grid, Button, Container, Box, Divider, CircularProgress } from '@material-ui/core';
 import { AlbumInfoColumn, Song, InfoProps, createSong } from './interfaces'
-import { getAlbumInfo, downloadAlbum } from './requests'
+import { getAlbumInfo, downloadAlbum, prepareAlbum} from './requests'
 import useStyles from './styles'
 import { sec2time, labelRows } from './util'
 import socket from 'socket.io-client'
-let io;
+let io: SocketIOClient.Socket;
 
 function AlbumInfo(props: InfoProps) {
     const [rows, setRows] = useState<Array<Song>>([])
@@ -66,13 +66,14 @@ function AlbumInfo(props: InfoProps) {
     async function download() {
         setDownloading(true)
         setDisabled(true)
-        io = socket('https://corsytad.herokuapp.com/https://ytadserver.herokuapp.com/')
-        io.on('connect',()=>{console.log('conectou')})
-        io.on('step',(step: string)=>{setStep(step)})
-        io.on('prdwn',(progress:number)=>progressDownload(progress))
-        setTimeout(async()=>{
-            const download = await downloadAlbum(props.videoURL,props.match.params.artist, 
-                props.match.params.albumName, rows, cover)
+        let info :{album:string, dir:string}
+        io = socket('https://ytadserver.herokuapp.com/')
+        io.on('socketReady', async (resp:boolean)=>{
+            info = await prepareAlbum(props.videoURL,props.match.params.artist, 
+            props.match.params.albumName, rows, cover)
+        })
+        io.on('readyToDownload',async (resp:boolean)=>{
+            const download = await downloadAlbum(info.album, info.dir)
             const url = window.URL.createObjectURL(new Blob([download]))
             const link = document.createElement('a')
             link.href = url
@@ -80,7 +81,10 @@ function AlbumInfo(props: InfoProps) {
             document.body.appendChild(link)
             link.click()
             setStep('Download finalizado!')
-        },5000)
+            io.disconnect()            
+        })
+        io.on('step',(step: string)=>{setStep(step)})
+        io.on('prdwn',(progress:number)=>progressDownload(progress))
     }
     function progressDownload(progress:number){
         if(progress===100){

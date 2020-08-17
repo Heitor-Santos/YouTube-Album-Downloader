@@ -14,7 +14,7 @@ interface song {
     track: string,
     length: string
 }
-function splitVideo(numberTracks: number, videoSrc: string, songBegin: number, song: song, i, dir, artist: string, album: string, linkCover: string, process: processState, res:any, socket: socket.Socket) {
+function splitVideo(numberTracks: number, videoSrc: string, songBegin: number, song: song, i, dir, artist: string, album: string, linkCover: string, process: processState, socket: socket.Socket) {
     const processVideo = new ffmpeg(videoSrc)
     processVideo.then(function (video) {
         video.setVideoStartTime(songBegin)
@@ -27,14 +27,14 @@ function splitVideo(numberTracks: number, videoSrc: string, songBegin: number, s
             else {
                 if (++process.songSplit == 1){
                     socket.emit('step', 'Separando as faixas')
-                    console.log('Início da separação!')
+                    console.log('Início da separação')
                 }
-                extractMP3(numberTracks, dest, song, dir, artist, album, linkCover, i, process, res, socket)
+                extractMP3(numberTracks, dest, song, dir, artist, album, linkCover, i, process, socket)
             }
         })
     })
 }
-function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: string, artist: string, album: string, linkCover: string, i: number, process: processState, res:any, socket: socket.Socket) {
+function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: string, artist: string, album: string, linkCover: string, i: number, process: processState, socket: socket.Socket) {
     const processVideo = new ffmpeg(videoSrc)
     let dest = `${dir}/songs/${song.track.replace(/ /g, '***')}.mp3`
     dest = dest.replace(/'/g, '%%%')
@@ -43,10 +43,10 @@ function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: str
         video.fnExtractSoundToMP3(dest, (err, file) => {
             if (!err) {
                 if (++process.songsMP3 == 1){
-                    socket.emit('step', 'Extraindo os MP3')
                     console.log('Início da extração!')
+                    socket.emit('step','Extraindo MP3')
                 }
-                applyMetadata(numberTracks, artist, album, song.track, i, linkCover, dir, process, res, socket)
+                applyMetadata(numberTracks, artist, album, song.track, i, linkCover, dir, process, socket)
             }
             else {
                 throw new Error('erro extraindo o MP3!')
@@ -54,7 +54,7 @@ function extractMP3(numberTracks: number, videoSrc: string, song: song, dir: str
         })
     })
 }
-function applyMetadata(numberTracks: number, artist: string, album: string, songName: string, i: number, linkCover, dir: string, process: processState, res:any, socket: socket.Socket) {
+function applyMetadata(numberTracks: number, artist: string, album: string, songName: string, i: number, linkCover, dir: string, process: processState, socket: socket.Socket) {
     var data = {
         artist: artist,
         album: album,
@@ -71,19 +71,19 @@ function applyMetadata(numberTracks: number, artist: string, album: string, song
         if (err) throw new Error('erro aplicando metadados!')
         else {
             if (++process.songsMeta == 1){
-                socket.emit('step', 'Aplicando metadados')
+                socket.emit('step','Aplicando metadados')
                 console.log('Início da aplicação de metadados!')
             }
             fs.rename(dest, `${dir}/songs/${songName}.mp3`, () => {
                 if (process.songsMeta == numberTracks) {
-                    socket.emit('step', 'Compactando dados')
-                    compactAlbum(dir, album, res)
+                    compactAlbum(dir, album, process, socket)
+                    socket.emit('step','Compactando faixas')
                 }
             })
         }
     });
 }
-function compactAlbum(dir: string, album: string,res:any) {
+function compactAlbum(dir: string, album: string,process: processState, socket: socket.Socket) {
     const output = fs.createWriteStream(`${dir}/${album}.zip`);
     const archive = archiver('zip', {
         zlib: { level: 9 } 
@@ -95,10 +95,8 @@ function compactAlbum(dir: string, album: string,res:any) {
     output.on('close', function () {
         console.log(archive.pointer() + ' total bytes');
         console.log('archiver has been finalized and the output file descriptor has closed.');
+        socket.emit('readyToDownload',true)
         destroyGarbage(dir)
-        // /res.setHeader('Access-Control-Allow-Origin', 'https://yt-album-downloader.web.app');
-        res.download(`${dir}/${album}.zip`)
-        //return res.json({'oi':'ola'})
     });
     output.on('end', function () {
         console.log('Data has been drained');

@@ -29,7 +29,7 @@ function App() {
       console.log(resp)
       if (resp?.videoDetails?.title !== '' && resp?.videoDetails?.lengthSeconds !== '') {
         setVideoTitle(resp.videoDetails.title)
-        setVideoDuration(resp.videoDetails.lengthSeconds)
+        setVideoDuration(parseInt(resp.videoDetails.lengthSeconds))
       }
       else
         setVideoTitle('Ocorreu um erro')
